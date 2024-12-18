@@ -131,6 +131,5 @@ def announce_new_block(block):
     for node in peers:
         requests.post(f"{node}/vote", json=block.__dict__)
 
-# Run the app
 if __name__ == '__main__':
-    app.run(port=8000)
+    app.run(host='0.0.0.0', port=80)
