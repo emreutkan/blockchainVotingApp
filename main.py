@@ -1,4 +1,5 @@
 import hashlib
+import os
 import time
 import json
 from flask import Flask, request, jsonify
@@ -132,4 +133,5 @@ def announce_new_block(block):
         requests.post(f"{node}/vote", json=block.__dict__)
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=80)
+    port = int(os.environ.get("PORT", 8000))
+    app.run(host='0.0.0.0', port=port)
