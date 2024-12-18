@@ -96,14 +96,36 @@ def get_chain():
     chain_data = [block.__dict__ for block in blockchain.chain]
     return jsonify({"length": len(chain_data), "chain": chain_data}), 200
 
+# Route to validate and add a block from peers
+@app.route('/validate_block', methods=['POST'])
+def validate_block():
+    block_data = request.get_json()
+    block = Block(**block_data)
+
+    # Validate the block and add it
+    latest_block = blockchain.get_latest_block()
+    if latest_block.hash == block.previous_hash and block.hash == block.calculate_hash():
+        blockchain.chain.append(block)
+        return jsonify({"message": "Block added to chain"}), 201
+    return jsonify({"error": "Invalid block"}), 400
+
 # Route to register a new peer
 @app.route('/register_node', methods=['POST'])
 def register_node():
     node = request.get_json().get("node_address")
-    if node not in peers:
+    if node and node not in peers:
         peers.append(node)
+        # Broadcast this node to other peers
+        for peer in peers:
+            if peer != node:
+                try:
+                    requests.post(f"{peer}/register_node", json={"node_address": node})
+                except:
+                    pass
+        # Sync with the new peer
+        requests.get(f"{node}/sync")
         return jsonify({"message": f"Node {node} added to network"}), 200
-    return jsonify({"error": "Node already exists"}), 400
+    return jsonify({"error": "Node already exists or invalid input"}), 400
 
 # Route to synchronize the blockchain
 @app.route('/sync', methods=['GET'])
@@ -113,14 +135,17 @@ def sync():
     current_len = len(blockchain.chain)
 
     for node in peers:
-        response = requests.get(f"{node}/chain")
-        if response.status_code == 200:
-            length = response.json()["length"]
-            chain = response.json()["chain"]
+        try:
+            response = requests.get(f"{node}/chain")
+            if response.status_code == 200:
+                length = response.json()["length"]
+                chain = response.json()["chain"]
 
-            if length > current_len and blockchain.is_chain_valid(chain):
-                current_len = length
-                longest_chain = chain
+                if length > current_len and blockchain.is_chain_valid(chain):
+                    current_len = length
+                    longest_chain = chain
+        except:
+            continue
 
     if longest_chain:
         blockchain.replace_chain(longest_chain)
@@ -130,7 +155,12 @@ def sync():
 # Announce new block to all peers
 def announce_new_block(block):
     for node in peers:
-        requests.post(f"{node}/vote", json=block.__dict__)
+        try:
+            response = requests.post(f"{node}/validate_block", json=block.__dict__)
+            if response.status_code == 201:
+                print(f"Block successfully shared with {node}")
+        except:
+            print(f"Failed to share block with {node}")
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 8000))
