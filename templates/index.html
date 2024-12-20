@@ -35,109 +35,166 @@
         }
 
         /* Responsive adjustments */
-        @media (max-width: 576px) {
+        @media (max-width: 768px) {
             .btn-primary, .btn-success, .btn-warning, .btn-info, .btn-secondary, .btn-dark {
                 width: 100%;
                 margin-bottom: 10px;
             }
         }
+
+        /* Navigation bar customization */
+        .navbar {
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">Voting Blockchain</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
     <div class="container my-4">
-        <h1 class="text-center mb-4">Decentralized Voting Blockchain</h1>
+        <!-- Tabs Navigation -->
+        <ul class="nav nav-tabs" id="blockchainTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="peer-tab" data-bs-toggle="tab" data-bs-target="#peer"
+                    type="button" role="tab" aria-controls="peer" aria-selected="true">Peers</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="vote-tab" data-bs-toggle="tab" data-bs-target="#vote"
+                    type="button" role="tab" aria-controls="vote" aria-selected="false">Submit Vote</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="mine-tab" data-bs-toggle="tab" data-bs-target="#mine"
+                    type="button" role="tab" aria-controls="mine" aria-selected="false">Mine Block</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="view-tab" data-bs-toggle="tab" data-bs-target="#view"
+                    type="button" role="tab" aria-controls="view" aria-selected="false">View Blockchain</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="validate-tab" data-bs-toggle="tab" data-bs-target="#validate"
+                    type="button" role="tab" aria-controls="validate" aria-selected="false">Validate Chain</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="consensus-tab" data-bs-toggle="tab" data-bs-target="#consensus"
+                    type="button" role="tab" aria-controls="consensus" aria-selected="false">Consensus</button>
+            </li>
+        </ul>
 
-        <!-- Register Peer Section -->
-        <div class="card mb-4">
-            <div class="card-header">
-                Register a New Peer
-            </div>
-            <div class="card-body">
-                <form id="register-peer-form">
-                    <div class="mb-3">
-                        <label for="peer-address" class="form-label">Peer Address</label>
-                        <input type="text" class="form-control" id="peer-address" placeholder="e.g., http://127.0.0.1:5001" required>
+        <!-- Tabs Content -->
+        <div class="tab-content" id="blockchainTabsContent">
+            <!-- Peers Tab -->
+            <div class="tab-pane fade show active" id="peer" role="tabpanel" aria-labelledby="peer-tab">
+                <div class="card mb-4 mt-3">
+                    <div class="card-header">
+                        Register a New Peer
                     </div>
-                    <button type="submit" class="btn btn-primary">Register Peer</button>
-                </form>
-                <div id="peer-registration-result" class="mt-3"></div>
-            </div>
-        </div>
-
-        <!-- Submit Vote Section -->
-        <div class="card mb-4">
-            <div class="card-header">
-                Submit a Vote
-            </div>
-            <div class="card-body">
-                <form id="submit-vote-form">
-                    <div class="mb-3">
-                        <label for="voter-id" class="form-label">Voter ID</label>
-                        <input type="text" class="form-control" id="voter-id" placeholder="e.g., voter123" required>
+                    <div class="card-body">
+                        <form id="register-peer-form">
+                            <div class="mb-3">
+                                <label for="peer-address" class="form-label">Peer Address</label>
+                                <input type="text" class="form-control" id="peer-address" placeholder="e.g., http://127.0.0.1:5001" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Register Peer</button>
+                        </form>
+                        <div id="peer-registration-result" class="mt-3"></div>
                     </div>
-                    <div class="mb-3">
-                        <label for="candidate" class="form-label">Candidate</label>
-                        <input type="text" class="form-control" id="candidate" placeholder="e.g., Alice" required>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header">
+                        Registered Peers
                     </div>
-                    <button type="submit" class="btn btn-success">Submit Vote</button>
-                </form>
-                <div id="vote-submission-result" class="mt-3"></div>
+                    <div class="card-body">
+                        <ul id="peers-list" class="list-group">
+                            <!-- Dynamically populated list of peers -->
+                        </ul>
+                    </div>
+                </div>
             </div>
-        </div>
 
-        <!-- Mine Block Section -->
-        <div class="card mb-4">
-            <div class="card-header">
-                Mine a New Block
+            <!-- Submit Vote Tab -->
+            <div class="tab-pane fade" id="vote" role="tabpanel" aria-labelledby="vote-tab">
+                <div class="card mb-4 mt-3">
+                    <div class="card-header">
+                        Submit a Vote
+                    </div>
+                    <div class="card-body">
+                        <form id="submit-vote-form">
+                            <div class="mb-3">
+                                <label for="voter-id" class="form-label">Voter ID</label>
+                                <input type="text" class="form-control" id="voter-id" placeholder="e.g., voter123" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="candidate" class="form-label">Candidate</label>
+                                <input type="text" class="form-control" id="candidate" placeholder="e.g., Alice" required>
+                            </div>
+                            <button type="submit" class="btn btn-success">Submit Vote</button>
+                        </form>
+                        <div id="vote-submission-result" class="mt-3"></div>
+                    </div>
+                </div>
             </div>
-            <div class="card-body text-center">
-                <button id="mine-block-btn" class="btn btn-warning">Mine Block</button>
-                <div id="mine-result" class="mt-3"></div>
-            </div>
-        </div>
 
-        <!-- View Blockchain Section -->
-        <div class="card mb-4">
-            <div class="card-header">
-                View Blockchain
+            <!-- Mine Block Tab -->
+            <div class="tab-pane fade" id="mine" role="tabpanel" aria-labelledby="mine-tab">
+                <div class="card mb-4 mt-3">
+                    <div class="card-header">
+                        Mine a New Block
+                    </div>
+                    <div class="card-body text-center">
+                        <button id="mine-block-btn" class="btn btn-warning">Mine Block</button>
+                        <div id="mine-result" class="mt-3"></div>
+                    </div>
+                </div>
             </div>
-            <div class="card-body text-center">
-                <button id="view-chain-btn" class="btn btn-info">Get Blockchain</button>
-                <pre id="blockchain-display" class="mt-3 text-start"></pre>
-            </div>
-        </div>
 
-        <!-- Validate Blockchain Section -->
-        <div class="card mb-4">
-            <div class="card-header">
-                Validate Blockchain
+            <!-- View Blockchain Tab -->
+            <div class="tab-pane fade" id="view" role="tabpanel" aria-labelledby="view-tab">
+                <div class="card mb-4 mt-3">
+                    <div class="card-header">
+                        View Blockchain
+                    </div>
+                    <div class="card-body text-center">
+                        <button id="view-chain-btn" class="btn btn-info">Get Blockchain</button>
+                        <pre id="blockchain-display" class="mt-3 text-start"></pre>
+                    </div>
+                </div>
             </div>
-            <div class="card-body text-center">
-                <button id="validate-chain-btn" class="btn btn-secondary">Validate Chain</button>
-                <p id="validation-result" class="mt-3"></p>
-            </div>
-        </div>
 
-        <!-- Consensus Section -->
-        <div class="card mb-4">
-            <div class="card-header">
-                Consensus Algorithm
+            <!-- Validate Chain Tab -->
+            <div class="tab-pane fade" id="validate" role="tabpanel" aria-labelledby="validate-tab">
+                <div class="card mb-4 mt-3">
+                    <div class="card-header">
+                        Validate Blockchain
+                    </div>
+                    <div class="card-body text-center">
+                        <button id="validate-chain-btn" class="btn btn-secondary">Validate Chain</button>
+                        <p id="validation-result" class="mt-3"></p>
+                    </div>
+                </div>
             </div>
-            <div class="card-body text-center">
-                <button id="consensus-btn" class="btn btn-dark">Run Consensus</button>
-                <p id="consensus-result" class="mt-3"></p>
-            </div>
-        </div>
 
-        <!-- Peers List Section -->
-        <div class="card mb-4">
-            <div class="card-header">
-                Registered Peers
-            </div>
-            <div class="card-body">
-                <ul id="peers-list" class="list-group">
-                    <!-- Dynamically populated list of peers -->
-                </ul>
+            <!-- Consensus Tab -->
+            <div class="tab-pane fade" id="consensus" role="tabpanel" aria-labelledby="consensus-tab">
+                <div class="card mb-4 mt-3">
+                    <div class="card-header">
+                        Consensus Algorithm
+                    </div>
+                    <div class="card-body text-center">
+                        <button id="consensus-btn" class="btn btn-dark">Run Consensus</button>
+                        <p id="consensus-result" class="mt-3"></p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
