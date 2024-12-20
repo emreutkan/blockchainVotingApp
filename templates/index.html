@@ -46,6 +46,18 @@
         .navbar {
             margin-bottom: 20px;
         }
+
+        /* Card height adjustments for consistency */
+        .card {
+            min-height: 300px;
+        }
+
+        /* Align buttons to the top on smaller screens */
+        @media (max-width: 576px) {
+            .align-top {
+                align-items: flex-start;
+            }
+        }
     </style>
 </head>
 <body>
@@ -62,39 +74,10 @@
 
     <!-- Main Container -->
     <div class="container my-4">
-        <!-- Tabs Navigation -->
-        <ul class="nav nav-tabs" id="blockchainTabs" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="peer-tab" data-bs-toggle="tab" data-bs-target="#peer"
-                    type="button" role="tab" aria-controls="peer" aria-selected="true">Peers</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="vote-tab" data-bs-toggle="tab" data-bs-target="#vote"
-                    type="button" role="tab" aria-controls="vote" aria-selected="false">Submit Vote</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="mine-tab" data-bs-toggle="tab" data-bs-target="#mine"
-                    type="button" role="tab" aria-controls="mine" aria-selected="false">Mine Block</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="view-tab" data-bs-toggle="tab" data-bs-target="#view"
-                    type="button" role="tab" aria-controls="view" aria-selected="false">View Blockchain</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="validate-tab" data-bs-toggle="tab" data-bs-target="#validate"
-                    type="button" role="tab" aria-controls="validate" aria-selected="false">Validate Chain</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="consensus-tab" data-bs-toggle="tab" data-bs-target="#consensus"
-                    type="button" role="tab" aria-controls="consensus" aria-selected="false">Consensus</button>
-            </li>
-        </ul>
-
-        <!-- Tabs Content -->
-        <div class="tab-content" id="blockchainTabsContent">
-            <!-- Peers Tab -->
-            <div class="tab-pane fade show active" id="peer" role="tabpanel" aria-labelledby="peer-tab">
-                <div class="card mb-4 mt-3">
+        <div class="row g-4">
+            <!-- Register Peer Section -->
+            <div class="col-md-6">
+                <div class="card">
                     <div class="card-header">
                         Register a New Peer
                     </div>
@@ -109,8 +92,11 @@
                         <div id="peer-registration-result" class="mt-3"></div>
                     </div>
                 </div>
+            </div>
 
-                <div class="card mb-4">
+            <!-- Registered Peers List -->
+            <div class="col-md-6">
+                <div class="card">
                     <div class="card-header">
                         Registered Peers
                     </div>
@@ -122,9 +108,9 @@
                 </div>
             </div>
 
-            <!-- Submit Vote Tab -->
-            <div class="tab-pane fade" id="vote" role="tabpanel" aria-labelledby="vote-tab">
-                <div class="card mb-4 mt-3">
+            <!-- Submit Vote Section -->
+            <div class="col-md-6">
+                <div class="card">
                     <div class="card-header">
                         Submit a Vote
                     </div>
@@ -145,35 +131,35 @@
                 </div>
             </div>
 
-            <!-- Mine Block Tab -->
-            <div class="tab-pane fade" id="mine" role="tabpanel" aria-labelledby="mine-tab">
-                <div class="card mb-4 mt-3">
-                    <div class="card-header">
+            <!-- Mine Block Section -->
+            <div class="col-md-6">
+                <div class="card d-flex align-items-center justify-content-center">
+                    <div class="card-header w-100 text-center">
                         Mine a New Block
                     </div>
-                    <div class="card-body text-center">
-                        <button id="mine-block-btn" class="btn btn-warning">Mine Block</button>
-                        <div id="mine-result" class="mt-3"></div>
+                    <div class="card-body text-center w-100">
+                        <button id="mine-block-btn" class="btn btn-warning mb-3">Mine Block</button>
+                        <div id="mine-result"></div>
                     </div>
                 </div>
             </div>
 
-            <!-- View Blockchain Tab -->
-            <div class="tab-pane fade" id="view" role="tabpanel" aria-labelledby="view-tab">
-                <div class="card mb-4 mt-3">
+            <!-- View Blockchain Section -->
+            <div class="col-12">
+                <div class="card">
                     <div class="card-header">
                         View Blockchain
                     </div>
                     <div class="card-body text-center">
-                        <button id="view-chain-btn" class="btn btn-info">Get Blockchain</button>
-                        <pre id="blockchain-display" class="mt-3 text-start"></pre>
+                        <button id="view-chain-btn" class="btn btn-info mb-3">Get Blockchain</button>
+                        <pre id="blockchain-display" class="text-start"></pre>
                     </div>
                 </div>
             </div>
 
-            <!-- Validate Chain Tab -->
-            <div class="tab-pane fade" id="validate" role="tabpanel" aria-labelledby="validate-tab">
-                <div class="card mb-4 mt-3">
+            <!-- Validate Chain Section -->
+            <div class="col-md-6">
+                <div class="card">
                     <div class="card-header">
                         Validate Blockchain
                     </div>
@@ -184,9 +170,9 @@
                 </div>
             </div>
 
-            <!-- Consensus Tab -->
-            <div class="tab-pane fade" id="consensus" role="tabpanel" aria-labelledby="consensus-tab">
-                <div class="card mb-4 mt-3">
+            <!-- Consensus Section -->
+            <div class="col-md-6">
+                <div class="card">
                     <div class="card-header">
                         Consensus Algorithm
                     </div>
@@ -421,6 +407,12 @@
                     }
                 });
             });
+
+            // Optional: Periodically refresh the blockchain display every 30 seconds
+            setInterval(function() {
+                getChain();
+                updatePeersList();
+            }, 30000); // 30000 milliseconds = 30 seconds
         });
     </script>
 </body>
