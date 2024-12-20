@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Decentralized Voting Blockchain</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Inline CSS -->
+    <style>
+        /* Customize card headers */
+        .card-header {
+            background-color: #343a40;
+            color: white;
+            font-weight: bold;
+        }
+
+        /* Customize buttons */
+        .btn-primary, .btn-success, .btn-warning, .btn-info, .btn-secondary, .btn-dark {
+            width: 100%;
+        }
+
+        /* Adjust the preformatted text block */
+        pre {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            max-height: 400px;
+            overflow: auto;
+        }
+
+        /* Add some margin to the list of peers */
+        #peers-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 576px) {
+            .btn-primary, .btn-success, .btn-warning, .btn-info, .btn-secondary, .btn-dark {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container my-4">
+        <h1 class="text-center mb-4">Decentralized Voting Blockchain</h1>
+
+        <!-- Register Peer Section -->
+        <div class="card mb-4">
+            <div class="card-header">
+                Register a New Peer
+            </div>
+            <div class="card-body">
+                <form id="register-peer-form">
+                    <div class="mb-3">
+                        <label for="peer-address" class="form-label">Peer Address</label>
+                        <input type="text" class="form-control" id="peer-address" placeholder="e.g., http://127.0.0.1:5001" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Register Peer</button>
+                </form>
+                <div id="peer-registration-result" class="mt-3"></div>
+            </div>
+        </div>
+
+        <!-- Submit Vote Section -->
+        <div class="card mb-4">
+            <div class="card-header">
+                Submit a Vote
+            </div>
+            <div class="card-body">
+                <form id="submit-vote-form">
+                    <div class="mb-3">
+                        <label for="voter-id" class="form-label">Voter ID</label>
+                        <input type="text" class="form-control" id="voter-id" placeholder="e.g., voter123" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="candidate" class="form-label">Candidate</label>
+                        <input type="text" class="form-control" id="candidate" placeholder="e.g., Alice" required>
+                    </div>
+                    <button type="submit" class="btn btn-success">Submit Vote</button>
+                </form>
+                <div id="vote-submission-result" class="mt-3"></div>
+            </div>
+        </div>
+
+        <!-- Mine Block Section -->
+        <div class="card mb-4">
+            <div class="card-header">
+                Mine a New Block
+            </div>
+            <div class="card-body text-center">
+                <button id="mine-block-btn" class="btn btn-warning">Mine Block</button>
+                <div id="mine-result" class="mt-3"></div>
+            </div>
+        </div>
+
+        <!-- View Blockchain Section -->
+        <div class="card mb-4">
+            <div class="card-header">
+                View Blockchain
+            </div>
+            <div class="card-body text-center">
+                <button id="view-chain-btn" class="btn btn-info">Get Blockchain</button>
+                <pre id="blockchain-display" class="mt-3 text-start"></pre>
+            </div>
+        </div>
+
+        <!-- Validate Blockchain Section -->
+        <div class="card mb-4">
+            <div class="card-header">
+                Validate Blockchain
+            </div>
+            <div class="card-body text-center">
+                <button id="validate-chain-btn" class="btn btn-secondary">Validate Chain</button>
+                <p id="validation-result" class="mt-3"></p>
+            </div>
+        </div>
+
+        <!-- Consensus Section -->
+        <div class="card mb-4">
+            <div class="card-header">
+                Consensus Algorithm
+            </div>
+            <div class="card-body text-center">
+                <button id="consensus-btn" class="btn btn-dark">Run Consensus</button>
+                <p id="consensus-result" class="mt-3"></p>
+            </div>
+        </div>
+
+        <!-- Peers List Section -->
+        <div class="card mb-4">
+            <div class="card-header">
+                Registered Peers
+            </div>
+            <div class="card-body">
+                <ul id="peers-list" class="list-group">
+                    <!-- Dynamically populated list of peers -->
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Invalid Chain -->
+    <div class="modal fade" id="invalidChainModal" tabindex="-1" aria-labelledby="invalidChainModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header bg-danger text-white">
+            <h5 class="modal-title" id="invalidChainModalLabel">Invalid Blockchain Detected</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            The current blockchain is invalid. Would you like to reset it to the genesis block?
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-danger" id="resetChainBtn">Reset Blockchain</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Inline JavaScript -->
+    <script>
+        $(document).ready(function() {
+            // Function to update the list of registered peers
+            function updatePeersList() {
+                $.ajax({
+                    url: '/chain',
+                    type: 'GET',
+                    success: function(response) {
+                        const peers = response.peers || [];
+                        $('#peers-list').empty();
+                        if (peers.length === 0) {
+                            $('#peers-list').append('<li class="list-group-item">No peers registered.</li>');
+                        } else {
+                            peers.forEach(function(peer) {
+                                $('#peers-list').append('<li class="list-group-item">' + peer + '</li>');
+                            });
+                        }
+                    },
+                    error: function(xhr) {
+                        $('#peers-list').empty();
+                        $('#peers-list').append('<li class="list-group-item text-danger">Error fetching peers.</li>');
+                    }
+                });
+            }
+
+            // Function to check chain validity on page load
+            function checkChainValidity() {
+                $.ajax({
+                    url: '/chain_status',
+                    type: 'GET',
+                    success: function(response) {
+                        if (!response.is_valid) {
+                            // Show the modal prompting user to reset
+                            var invalidChainModal = new bootstrap.Modal(document.getElementById('invalidChainModal'), {
+                                keyboard: false
+                            });
+                            invalidChainModal.show();
+                        }
+                    },
+                    error: function(xhr) {
+                        console.error("Error checking chain status.");
+                    }
+                });
+            }
+
+            // Initial load of peers and chain validity
+            updatePeersList();
+            checkChainValidity();
+
+            // Register Peer Form Submission
+            $('#register-peer-form').submit(function(event) {
+                event.preventDefault();
+                const peerAddress = $('#peer-address').val().trim();
+                if (peerAddress === '') {
+                    $('#peer-registration-result').html('<div class="alert alert-danger">Peer address cannot be empty.</div>');
+                    return;
+                }
+
+                $.ajax({
+                    url: '/register_peer',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({peer: peerAddress}),
+                    success: function(response) {
+                        $('#peer-registration-result').html('<div class="alert alert-success">' + response.message + '</div>');
+                        $('#register-peer-form')[0].reset();
+                        updatePeersList();
+                    },
+                    error: function(xhr) {
+                        const errorMsg = xhr.responseJSON ? xhr.responseJSON.error : 'An error occurred.';
+                        $('#peer-registration-result').html('<div class="alert alert-danger">' + errorMsg + '</div>');
+                    }
+                });
+            });
+
+            // Submit Vote Form Submission
+            $('#submit-vote-form').submit(function(event) {
+                event.preventDefault();
+                const voterId = $('#voter-id').val().trim();
+                const candidate = $('#candidate').val().trim();
+
+                if (voterId === '' || candidate === '') {
+                    $('#vote-submission-result').html('<div class="alert alert-danger">Both Voter ID and Candidate are required.</div>');
+                    return;
+                }
+
+                $.ajax({
+                    url: '/vote',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({voter_id: voterId, candidate: candidate}),
+                    success: function(response) {
+                        $('#vote-submission-result').html('<div class="alert alert-success">' + response.message + '</div>');
+                        $('#submit-vote-form')[0].reset();
+                    },
+                    error: function(xhr) {
+                        const errorMsg = xhr.responseJSON ? xhr.responseJSON.error : 'An error occurred.';
+                        $('#vote-submission-result').html('<div class="alert alert-danger">' + errorMsg + '</div>');
+                    }
+                });
+            });
+
+            // Mine Block Button Click
+            $('#mine-block-btn').click(function() {
+                $('#mine-result').html('');
+                $.ajax({
+                    url: '/mine',
+                    type: 'GET',
+                    success: function(response) {
+                        if (response.message === "No votes to mine.") {
+                            $('#mine-result').html('<div class="alert alert-info">' + response.message + '</div>');
+                        } else {
+                            $('#mine-result').html('<div class="alert alert-success">' + response.message + '</div>');
+                            // Optionally, refresh the blockchain view
+                            getChain();
+                            updatePeersList();
+                        }
+                    },
+                    error: function(xhr) {
+                        $('#mine-result').html('<div class="alert alert-danger">Error mining block.</div>');
+                    }
+                });
+            });
+
+            // View Blockchain Button Click
+            $('#view-chain-btn').click(function() {
+                getChain();
+            });
+
+            function getChain() {
+                $.ajax({
+                    url: '/chain',
+                    type: 'GET',
+                    success: function(response) {
+                        const chain = response.chain;
+                        const formattedChain = JSON.stringify(chain, null, 4);
+                        $('#blockchain-display').text(formattedChain);
+                        updatePeersList(); // Update peers list if peers are part of the chain
+                    },
+                    error: function(xhr) {
+                        $('#blockchain-display').text('Error fetching blockchain.');
+                    }
+                });
+            }
+
+            // Validate Chain Button Click
+            $('#validate-chain-btn').click(function() {
+                $('#validation-result').html('');
+                $.ajax({
+                    url: '/validate',
+                    type: 'GET',
+                    success: function(response) {
+                        $('#validation-result').html('<span class="text-success">' + response.message + '</span>');
+                    },
+                    error: function(xhr) {
+                        const errorMsg = xhr.responseJSON ? xhr.responseJSON.message : 'An error occurred.';
+                        $('#validation-result').html('<span class="text-danger">' + errorMsg + '</span>');
+                    }
+                });
+            });
+
+            // Consensus Button Click
+            $('#consensus-btn').click(function() {
+                $('#consensus-result').html('');
+                $.ajax({
+                    url: '/consensus',
+                    type: 'GET',
+                    success: function(response) {
+                        if (response.message.includes('replaced')) {
+                            $('#consensus-result').html('<span class="text-success">' + response.message + '</span>');
+                        } else {
+                            $('#consensus-result').html('<span class="text-info">' + response.message + '</span>');
+                        }
+                        getChain(); // Refresh blockchain display
+                        updatePeersList();
+                    },
+                    error: function(xhr) {
+                        const errorMsg = xhr.responseJSON ? xhr.responseJSON.message : 'An error occurred.';
+                        $('#consensus-result').html('<span class="text-danger">' + errorMsg + '</span>');
+                    }
+                });
+            });
+
+            // Handle the reset chain button click
+            $('#resetChainBtn').click(function() {
+                $.ajax({
+                    url: '/reset_chain',
+                    type: 'POST',
+                    success: function(response) {
+                        alert(response.message);
+                        // Optionally, refresh the page to load the new genesis block
+                        location.reload();
+                    },
+                    error: function(xhr) {
+                        const errorMsg = xhr.responseJSON ? xhr.responseJSON.message : 'An error occurred.';
+                        alert(errorMsg);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
