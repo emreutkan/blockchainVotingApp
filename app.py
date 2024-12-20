@@ -150,6 +150,22 @@ class Blockchain:
             block_index += 1
         return True
 
+    def is_valid_proof(self, previous_proof, proof):
+        """
+        Validates the Proof: Does hash(proof^2 - previous_proof^2) contain 4 leading zeroes?
+
+        Parameters:
+        - previous_proof (int): The proof of the previous block.
+        - proof (int): The proof to validate.
+
+        Returns:
+        - bool: True if valid, False otherwise.
+        """
+        hash_operation = hashlib.sha256(
+            str(proof ** 2 - previous_proof ** 2).encode()
+        ).hexdigest()
+        return hash_operation[:4] == "0000"
+
     def add_vote(self, voter_id, candidate):
         """
         Adds a new vote to the list of current votes after ensuring no duplicate votes.
@@ -196,17 +212,20 @@ class Blockchain:
         """
         self.peers.add(address)
 
-    def broadcast_chain(self):
+    def broadcast_block(self, block):
         """
-        Broadcasts the current chain to all registered peers.
+        Broadcasts a newly mined block to all registered peers.
+
+        Parameters:
+        - block (dict): The newly mined block to broadcast.
         """
         for peer in self.peers:
             try:
-                response = requests.post(f"{peer}/receive_chain", json={"chain": self.chain})
+                response = requests.post(f"{peer}/receive_block", json={"block": block})
                 if response.status_code == 200:
-                    print(f"Chain successfully sent to {peer}")
+                    print(f"Block successfully sent to {peer}")
             except requests.exceptions.RequestException as e:
-                print(f"Error sending chain to {peer}: {e}")
+                print(f"Error sending block to {peer}: {e}")
 
     def resolve_conflicts(self):
         """
@@ -268,7 +287,7 @@ def vote():
         "candidate": candidate
     }), 201
 
-# Endpoint: Mine a block
+
 @app.route('/mine', methods=['GET'])
 def mine_block():
     """
@@ -285,7 +304,7 @@ def mine_block():
     proof = blockchain.proof_of_work(previous_proof)
     previous_hash = blockchain.hash(previous_block)
     block = blockchain.create_block(proof, previous_hash)
-    blockchain.broadcast_chain()
+    blockchain.broadcast_block(block)  # Broadcast only the new block
     return jsonify({
         "message": "New block mined successfully!",
         "index": block['index'],
@@ -295,6 +314,7 @@ def mine_block():
         "previous_hash": block['previous_hash'],
         "hash": block['hash']
     }), 200
+
 
 # Endpoint: Get the blockchain
 @app.route('/chain', methods=['GET'])
@@ -417,6 +437,39 @@ def reset_chain():
     blockchain.create_block(proof=1, previous_hash='0')
     blockchain.is_valid = True  # Reset the validity flag
     return jsonify({"message": "Blockchain has been reset to the genesis block."}), 200
+
+
+@app.route('/receive_block', methods=['POST'])
+def receive_block():
+    """
+    Endpoint to receive a new block from a peer.
+
+    Expects JSON data with 'block'.
+
+    Returns:
+    - JSON response indicating whether the block was added or rejected.
+    """
+    data = request.get_json()
+    incoming_block = data.get('block')
+
+    if not incoming_block:
+        return jsonify({"error": "Missing block data"}), 400
+
+    # Get the last block in the current chain
+    last_block = blockchain.get_previous_block()
+
+    # Validate the incoming block
+    if last_block['hash'] != incoming_block['previous_hash']:
+        return jsonify({"error": "Previous hash does not match."}), 400
+
+    if not blockchain.is_valid_proof(last_block['proof'], incoming_block['proof']):
+        return jsonify({"error": "Invalid proof of work."}), 400
+
+    # Add the new block to the chain
+    blockchain.chain.append(incoming_block)
+    blockchain.save_chain()
+    return jsonify({"message": "Block added to the chain."}), 200
+
 
 # Endpoint: Serve the frontend page
 @app.route('/')
